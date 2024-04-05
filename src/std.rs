@@ -78,18 +78,26 @@ impl Instant {
     }
 }
 
+fn duration_to_ms_f64(d: Duration) -> f64 {
+    (d.as_micros() as f64) / 1000.0
+}
+
+fn duration_from_ms_f64(d: f64) -> Duration {
+    Duration::from_micros((d * 1000.0) as _)
+}
+
 impl Add<Duration> for Instant {
     type Output = Instant;
 
     fn add(self, other: Duration) -> Instant {
-        let new_val = self.inner + other.as_millis() as f64;
+        let new_val = self.inner + duration_to_ms_f64(other);
         Instant { inner: new_val }
     }
 }
 
 impl AddAssign<Duration> for Instant {
     fn add_assign(&mut self, rhs: Duration) {
-        self.inner += rhs.as_millis() as f64;
+        self.inner += duration_to_ms_f64(rhs);
     }
 }
 
@@ -97,14 +105,14 @@ impl Sub<Duration> for Instant {
     type Output = Instant;
 
     fn sub(self, other: Duration) -> Instant {
-        let new_val = self.inner - other.as_millis() as f64;
+        let new_val = self.inner - duration_to_ms_f64(other);
         Instant { inner: new_val }
     }
 }
 
 impl SubAssign<Duration> for Instant {
     fn sub_assign(&mut self, rhs: Duration) {
-        self.inner -= rhs.as_millis() as f64;
+        self.inner -= duration_to_ms_f64(rhs);
     }
 }
 
@@ -112,9 +120,9 @@ impl Sub<Instant> for Instant {
     type Output = Duration;
 
     fn sub(self, other: Instant) -> Duration {
-        let ms = self.inner - other.inner;
-        assert!(ms >= 0.0);
-        Duration::from_millis(ms as u64)
+        let d = self.inner - other.inner;
+        assert!(d >= 0.0);
+        duration_from_ms_f64(d)
     }
 }
 
@@ -169,7 +177,7 @@ impl SystemTime {
         if dur_ms < 0.0 {
             return Err(SystemTimeError(Duration::from_millis(dur_ms.abs() as u64)));
         }
-        Ok(Duration::from_millis(dur_ms as u64))
+        Ok(duration_from_ms_f64(dur_ms))
     }
 
     pub fn elapsed(&self) -> Result<Duration, SystemTimeError> {
@@ -189,7 +197,7 @@ impl Add<Duration> for SystemTime {
     type Output = SystemTime;
 
     fn add(self, other: Duration) -> SystemTime {
-        let new_val = self.inner + other.as_millis() as f64;
+        let new_val = self.inner + duration_to_ms_f64(other);
         SystemTime { inner: new_val }
     }
 }
@@ -198,7 +206,7 @@ impl Sub<Duration> for SystemTime {
     type Output = SystemTime;
 
     fn sub(self, other: Duration) -> SystemTime {
-        let new_val = self.inner - other.as_millis() as f64;
+        let new_val = self.inner - duration_to_ms_f64(other);
         SystemTime { inner: new_val }
     }
 }
